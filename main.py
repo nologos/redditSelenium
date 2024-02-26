@@ -81,14 +81,15 @@ def get_context(browser, browserInstance):
         browser.switch_to.window(browser.window_handles[0])
         return "no context"
     output = de.text.replace(
-        '\n\n\n\n\n\n\n\n\n\n\n', "").replace(
+        '\n\n\n\n\n\n\n\n\n\n\n',"").replace(
         'permalinkembedsavereport','').replace(
         'permalinksaveparentreportreply','').replace(
         'permalinkembedsaveparentreport','').replace(
-        'permalinkembedsaveeditdisable inbox repliesdelete', '').replace(
-        'permalinksaveeditdisable inbox repliesdelete', '').replace(
-        'permalinkembedsaveparenteditdisable inbox repliesdeletereply', '').replace(
-        'permalinkembedsaveparentreportreply', '').replace(
+        'permalinkembedsaveeditdisable inbox repliesdelete','').replace(
+        'permalinksaveeditdisable inbox repliesdelete','').replace(
+        'permalinkembedsaveparenteditdisable inbox repliesdelete','').replace(
+        'permalinkembedsaveparenteditdisable inbox repliesdeletereply','').replace(
+        'permalinkembedsaveparentreportreply','').replace(
         '[–]','---[-]').split('---')[1:]
     browser.close()
     browser.switch_to.window(browser.window_handles[0])
