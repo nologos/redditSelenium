@@ -1,8 +1,3 @@
-# username.screenshot('1.png')
-# backupdatabase = json.loads(open("D:/GIT/temp/database.json", "r").read())
-# open("D:/GIT/temp/database_backup.json", "w").write(json.dumps(backupdatabase))
-
-
 import json
 import time 
 import os
@@ -96,13 +91,28 @@ def delete_item(browser, browserInstance):
         deletebutton = browserInstance.find_element(By.CLASS_NAME, 'del-button')
         deletebutton.click()
         time.sleep(1)
-        deletebuttonconfirm = browserInstance.find_elements(By.CLASS_NAME, 'yes')[1]
+        localbrowserInstance = deletebutton.find_elements(By.CSS_SELECTOR, '.option.error.active')[0]
+        deletebuttonconfirm = localbrowserInstance.find_elements(By.CLASS_NAME, 'yes')[0]
         deletebuttonconfirm.click()
+        time.sleep(1)
+        browser.refresh()
         return True
     except Exception as e:
         print(e)
         return False
     
+
+def delete_allItems(browser):
+    try:
+        browserInstances = browser.find_elements(By.CLASS_NAME, 'thing')
+        for browserInstance in browserInstances:
+            delete_item(browser, browserInstance)
+            time.sleep(1)
+        browser.refresh()
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
 
 def get_post(browser, browserInstance):
@@ -123,15 +133,10 @@ def get_post(browser, browserInstance):
         return "not text"
 
 
-for count, browserInstance in enumerate(browser.find_elements(By.CLASS_NAME, 'thing')):
-    count, get_post(browser, browserInstance)
-
-
-# entry["deleted"] = delete_item(browser, browserInstance)
 def get_comments(browser):
     pageitems = []
     for count, browserInstance in enumerate(browser.find_elements(By.CLASS_NAME, 'thing')):
-        print(count)
+        print(count, end="")
         entry = {}
         entry["url"] = browserInstance.find_element(By.CLASS_NAME, 'title').get_attribute('href')
         entry["title"] = browserInstance.find_element(By.CLASS_NAME, 'title').text
@@ -140,8 +145,6 @@ def get_comments(browser):
         entry["post"] = get_post(browser, browserInstance)
         pageitems.append(entry)
     return pageitems
-
-
 
 
 def init_FF():
@@ -161,50 +164,46 @@ def init_profilePage(browser):
 
 
 
-
-
-# ----
-temp_database = json.loads(open("D:/GIT/temp/database.json", "r").read())
-
-len(json.loads(open("D:/GIT/temp/database.json", "r").read()))
-len(temp_database)
-
-
-blank = [print(i["myComment"]) for i in temp_database]
-
-
-
-def main(browser):
-    ddd = get_comments(browser)
+def mainpoo(browser, func):
+    name = func.__name__
+    try:
+        temp_database = json.loads(open(f"D:/GIT/temp/{name}.json", "r").read())
+    except FileNotFoundError as e:
+        print("file not found, will create new db")
+        temp_database = []
+    ddd = func(browser)
     for d in ddd:
         temp_database.append(d)
-        open("d:/git/temp/tempfile.tmp", "a").write(","+json.dumps(d))
-    
+        open(f"d:/git/temp/{name}.tmp", "a").write(","+json.dumps(d))
+    open(f"D:/GIT/temp/{name}.json", "w").write(json.dumps(temp_database))
+    # delete_allItems(browser)
+    if len(ddd) == 25:
+        print("page is full, will run again")
+        return True
+    else:
+        print("page is not full will stop after finish")
+        return False
 
-    # get_comments()
-    # get_submitted()
-    # get_upvoted()
-    # get_downvoted()
-    # get_commentItem()
 
 
 browser = init_FF()
 init_profilePage(browser)
-main(browser)
+
+for functions in [get_comments]:
+    """
+    get_comments -- download all things from comment tab
+    """
+    counter = 0
+    while mainpoo(browser, functions) and (counter := counter + 1) : 
+        print("page ", counter)
+        browserInstance = browser.find_elements(By.CLASS_NAME, 'thing')
+        # delete_item(browser, browserInstance[0])
 
 
 
+openitem(browser, PROFILEPAGE)
+openitem(browser, COMMENTSPAGE)
 
-
-
-
-
-
-
-
-
-# write to file
-open("D:/GIT/temp/database.json", "w").write(json.dumps(temp_database))
 
 # cache len
 len(open("d:/git/temp/tempfile.tmp", "r").read().split("url"))
