@@ -74,18 +74,28 @@ def get_context(browser, browserInstance):
     contextbutton.send_keys(Keys.CONTROL + Keys.RETURN)
     browser.switch_to.window(browser.window_handles[-1])
     time.sleep(1)
-    de = browser.find_element(By.CLASS_NAME, 'nestedlisting')
+    try:
+        de = browser.find_element(By.CLASS_NAME, 'nestedlisting')
+    except Exception as e:
+        browser.close()
+        browser.switch_to.window(browser.window_handles[0])
+        return "no context"
     output = de.text.replace(
         '\n\n\n\n\n\n\n\n\n\n\n', "").replace(
+        'permalinkembedsavereport','').replace(
+        'permalinksaveparentreportreply','').replace(
+        'permalinkembedsaveparentreport','').replace(
+        'permalinkembedsaveeditdisable inbox repliesdelete', '').replace(
         'permalinksaveeditdisable inbox repliesdelete', '').replace(
-        'permalinkembedsaveeditdisable inbox repliesdeletereply', '').replace(
-        'thoughtpermalinkembedsaveparenteditdisable inbox repliesdeletereply', '').replace(
+        'permalinkembedsaveparenteditdisable inbox repliesdeletereply', '').replace(
+        'permalinkembedsaveparentreportreply', '').replace(
         '[–]','---[-]').split('---')[1:]
     browser.close()
     browser.switch_to.window(browser.window_handles[0])
     time.sleep(1)
     return output
     
+
 
 def delete_item(browser, browserInstance):
     try:
@@ -96,7 +106,6 @@ def delete_item(browser, browserInstance):
         deletebuttonconfirm = localbrowserInstance.find_elements(By.CLASS_NAME, 'yes')[0]
         deletebuttonconfirm.click()
         time.sleep(1)
-        browser.refresh()
         return True
     except Exception as e:
         print("error single item delete exception")
@@ -109,7 +118,6 @@ def delete_allItems(browser):
         print("found ", len(browserInstances), " items, running delete")
         for browserInstance in browserInstances:
             delete_item(browser, browserInstance)
-            time.sleep(1)
         browser.refresh()
         return True
     except Exception as e:
@@ -138,8 +146,9 @@ def get_post(browser, browserInstance):
 def get_comments(browser):
     pageitems = []
     openitem(browser, COMMENTSPAGE)
-    for count, browserInstance in enumerate(browser.find_elements(By.CLASS_NAME, 'thing')):
-        print(count, end="")
+    things = browser.find_elements(By.CLASS_NAME, 'thing')
+    for count, browserInstance in enumerate(things):
+        print(count, "of " , len(things))
         entry = {}
         entry["url"] = browserInstance.find_element(By.CLASS_NAME, 'title').get_attribute('href')
         entry["title"] = browserInstance.find_element(By.CLASS_NAME, 'title').text
@@ -147,6 +156,7 @@ def get_comments(browser):
         entry["context"] = get_context(browser,browserInstance)
         entry["post"] = get_post(browser, browserInstance)
         pageitems.append(entry)
+    openitem(browser, COMMENTSPAGE)
     return pageitems
 
 
@@ -180,7 +190,7 @@ def mainpoo(browser, func):
         temp_database.append(d)
         open(f"d:/git/temp/{uname}{name}.tmp", "a").write(","+json.dumps(d))
     open(f"D:/GIT/temp/{uname}{name}.json", "w").write(json.dumps(temp_database))
-    # delete_allItems(browser)
+    delete_allItems(browser) # delete switch
     if len(ddd) == 25:
         print("page is full, will run again")
         return True
@@ -196,12 +206,9 @@ browser = init_FF()
 init_profilePage(browser)
 
 for functions in [get_comments]:
-    """
-    get_comments -- download all things from comment tab
-    """
+    # get_comments -- download all things from comment tab
     counter = 0
     while mainpoo(browser, functions) and (counter := counter + 1) : 
         print("page ", counter)
-        delete_allItems(browser)
 
 
