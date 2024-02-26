@@ -1,7 +1,6 @@
 import json
 import time 
 import os
-from pprint import pprint
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
