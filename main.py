@@ -43,6 +43,7 @@ def get_credentials(func):
     """
     vars = func()
     # Get the username and password
+    global username
     username = vars.get('webusername')
     password = vars.get('webpassword')
     return username, password
@@ -98,20 +99,21 @@ def delete_item(browser, browserInstance):
         browser.refresh()
         return True
     except Exception as e:
-        print(e)
+        print("error single item delete exception")
         return False
     
 
 def delete_allItems(browser):
     try:
         browserInstances = browser.find_elements(By.CLASS_NAME, 'thing')
+        print("found ", len(browserInstances), " items, running delete")
         for browserInstance in browserInstances:
             delete_item(browser, browserInstance)
             time.sleep(1)
         browser.refresh()
         return True
     except Exception as e:
-        print(e)
+        print("error multi delete exception")
         return False
 
 
@@ -135,6 +137,7 @@ def get_post(browser, browserInstance):
 
 def get_comments(browser):
     pageitems = []
+    openitem(browser, COMMENTSPAGE)
     for count, browserInstance in enumerate(browser.find_elements(By.CLASS_NAME, 'thing')):
         print(count, end="")
         entry = {}
@@ -166,16 +169,17 @@ def init_profilePage(browser):
 
 def mainpoo(browser, func):
     name = func.__name__
+    uname = username 
     try:
-        temp_database = json.loads(open(f"D:/GIT/temp/{name}.json", "r").read())
+        temp_database = json.loads(open(f"D:/GIT/temp/{uname}{name}.json", "r").read())
     except FileNotFoundError as e:
         print("file not found, will create new db")
         temp_database = []
     ddd = func(browser)
     for d in ddd:
         temp_database.append(d)
-        open(f"d:/git/temp/{name}.tmp", "a").write(","+json.dumps(d))
-    open(f"D:/GIT/temp/{name}.json", "w").write(json.dumps(temp_database))
+        open(f"d:/git/temp/{uname}{name}.tmp", "a").write(","+json.dumps(d))
+    open(f"D:/GIT/temp/{uname}{name}.json", "w").write(json.dumps(temp_database))
     # delete_allItems(browser)
     if len(ddd) == 25:
         print("page is full, will run again")
@@ -184,6 +188,8 @@ def mainpoo(browser, func):
         print("page is not full will stop after finish")
         return False
 
+
+#-------
 
 
 browser = init_FF()
@@ -196,14 +202,6 @@ for functions in [get_comments]:
     counter = 0
     while mainpoo(browser, functions) and (counter := counter + 1) : 
         print("page ", counter)
-        browserInstance = browser.find_elements(By.CLASS_NAME, 'thing')
-        # delete_item(browser, browserInstance[0])
+        delete_allItems(browser)
 
 
-
-openitem(browser, PROFILEPAGE)
-openitem(browser, COMMENTSPAGE)
-
-
-# cache len
-len(open("d:/git/temp/tempfile.tmp", "r").read().split("url"))
